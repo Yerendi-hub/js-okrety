@@ -1,16 +1,17 @@
 from enum import Enum
+import pygame
 
 
 class Colors:
     white = (255, 255, 255)
     red = (255, 0, 0)
     green = (0, 255, 0)
-    lightBlue = (0,191,255)
+    lightBlue = (0, 191, 255)
     blue = (0, 0, 255)
     black = (0, 0, 0)
     orange = (255, 165, 0)
-    darkOrange = (255,99,71)
-    lightGreen = (0,255,127)
+    darkOrange = (255, 99, 71)
+    lightGreen = (0, 255, 127)
 
 
 class GeneralData:
@@ -22,6 +23,7 @@ class GeneralData:
 
 class GameData:
     gridSize = 10
+    menuButtonSize = (200, 100)
     buttonSize = 40
     mapMarginX = 30
     mapMarginY = 30
@@ -68,11 +70,29 @@ class BoardMarkersUtils:
             case _:
                 return Colors.black
 
+
 class RectUtils:
     @staticmethod
     def getPlayerBoardCoordinate(mousePos):
-        return int((mousePos[0] - GameData.mapMarginX) / GameData.buttonSize), int((mousePos[1] - GameData.mapMarginY) / GameData.buttonSize)
+        return int((mousePos[0] - GameData.mapMarginX) / GameData.buttonSize), int(
+            (mousePos[1] - GameData.mapMarginY) / GameData.buttonSize)
 
     @staticmethod
     def getEnemyBoardCoordinate(mousePos):
-        return int((mousePos[0] - GameData.enemyMapOrigin) / GameData.buttonSize), int((mousePos[1] - GameData.mapMarginY) / GameData.buttonSize)
+        return int((mousePos[0] - GameData.enemyMapOrigin) / GameData.buttonSize), int(
+            (mousePos[1] - GameData.mapMarginY) / GameData.buttonSize)
+
+
+class TextDisplayer:
+    @staticmethod
+    def text_to_screen(window, text, x, y, size=50, color=Colors.black):
+        font = pygame.font.Font(pygame.font.get_default_font(), size)
+        text = font.render(text, False, color)
+        window.blit(text, (x, y))
+
+    @staticmethod
+    def get_text_size(text, size=50):
+        font = pygame.font.Font(pygame.font.get_default_font(), size)
+        text = font.render(text, False, Colors.red)
+        return text.get_width(), text.get_height()
+

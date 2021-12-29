@@ -1,17 +1,15 @@
 import pygame
 import GameLogic
 import pygame_widgets
-from Utils import GeneralData, Colors
+from Utils import GeneralData, Colors, TextDisplayer
 
 pygame.init()
 window = pygame.display.set_mode((GeneralData.width, GeneralData.height))
 pygame.display.set_caption(GeneralData.name)
 
-
 def draw_window():
     window.fill(Colors.white)
     gl.drawGame(window)
-
 
 def flushDisplay(events):
     pygame.display.flip()
@@ -21,9 +19,9 @@ def flushDisplay(events):
 
 def main():
     clock = pygame.time.Clock()
-    run = True
     global gl
     gl = GameLogic.GameLogic()
+    run = True
 
     while run:
         clock.tick(GeneralData.fps)
@@ -37,6 +35,10 @@ def main():
         draw_window()
         flushDisplay(events)
 
+    quitGame()
+
+
+def quitGame():
     pygame.quit()
     quit(0)
 
