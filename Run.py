@@ -8,9 +8,12 @@ window = pygame.display.set_mode((GeneralData.width, GeneralData.height))
 pygame.display.set_caption(GeneralData.name)
 
 
-def draw_window(events):
-#    window.fill(Colors.white)
-#    pygame.draw.rect(window, Colors.red, pygame.Rect(10, 10, 100, 100))
+def draw_window():
+    window.fill(Colors.white)
+    gl.drawGame(window)
+
+
+def flushDisplay(events):
     pygame.display.flip()
     pygame.display.update()
     pygame_widgets.update(events)
@@ -19,7 +22,8 @@ def draw_window(events):
 def main():
     clock = pygame.time.Clock()
     run = True
-    gl = GameLogic.GameLogic(window)
+    global gl
+    gl = GameLogic.GameLogic()
 
     while run:
         clock.tick(GeneralData.fps)
@@ -27,8 +31,11 @@ def main():
         for event in events:
             if event.type == pygame.QUIT:
                 run = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                gl.handleMouseDown()
 
-        draw_window(events)
+        draw_window()
+        flushDisplay(events)
 
     pygame.quit()
     quit(0)
