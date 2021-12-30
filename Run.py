@@ -30,7 +30,12 @@ def main():
             if event.type == pygame.QUIT:
                 run = False
             if event.type == pygame.MOUSEBUTTONDOWN:
-                gl.handleMouseDown()
+                if event.button == 1:
+                    gl.handleLeftMouseDown()
+                elif event.button == 3:
+                    gl.handleRightMouseDown()
+            if event.type == pygame.KEYDOWN:
+                gl.handleKeyPress(event.key)
 
         draw_window()
         flushDisplay(events)

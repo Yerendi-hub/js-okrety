@@ -12,6 +12,7 @@ class Colors:
     orange = (255, 165, 0)
     darkOrange = (255, 99, 71)
     lightGreen = (0, 255, 127)
+    gray = (119,136,153)
 
 
 class GeneralData:
@@ -23,11 +24,22 @@ class GeneralData:
 
 class GameData:
     gridSize = 10
-    menuButtonSize = (200, 100)
+    menuButtonSize = (200, 75)
+    shipButtonSize = (300, 50)
     buttonSize = 40
     mapMarginX = 30
     mapMarginY = 30
+    boardTopMargin = 100
     enemyMapOrigin = GeneralData.width - mapMarginX - gridSize * buttonSize
+    oneMast = 4
+    twoMast = 3
+    threeMast = 2
+    fourMast = 1
+
+
+class ShipOrientation(Enum):
+    horizontal = 1
+    vertical = 2
 
 
 class BoardMarkers(Enum):
