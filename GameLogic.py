@@ -1,6 +1,7 @@
 import pygame
 import Run
 import Ship
+import random
 
 from Utils import GameData, BoardMarkers, RectUtils, BoardMarkersUtils, GameState, GeneralData, Colors, TextDisplayer
 from Utils import ShipOrientation
@@ -38,21 +39,13 @@ class GameLogic:
         self.enemyButtonsGrid = [[0 for _ in range(GameData.gridSize)] for _ in range(GameData.gridSize)]
         self.currentShip = Ship.Ship(0, (0, 0))
         self.shipOrientation = ShipOrientation.vertical
-        self.ships = list()
+        self.playerShips = list()
+        self.enemyShips = list()
 
         self.fillGrid()
 
     def fillGrid(self):
-        self.ships = list()
-
-        for i in range(GameData.oneMast):
-            self.ships.append(Ship.Ship(1, (0, 0)))
-        for i in range(GameData.twoMast):
-            self.ships.append(Ship.Ship(2, (0, 0)))
-        for i in range(GameData.threeMast):
-            self.ships.append(Ship.Ship(3, (0, 0)))
-        for i in range(GameData.fourMast):
-            self.ships.append(Ship.Ship(4, (0, 0)))
+        self.__fillListWithShips(self.playerShips)
 
         for row in range(0, GameData.gridSize):
             for col in range(0, GameData.gridSize):
@@ -62,6 +55,19 @@ class GameLogic:
                 self.enemyShipsGrid[row][col] = BoardMarkers.water
                 self.enemyButtonsGrid[row][col] = pygame.Rect(GameData.enemyMapOrigin + row * 40,
                                                               GameData.mapMarginY + col * 40, 36, 36)
+
+    def __fillListWithShips(self, shipsList):
+        shipsList.clear()
+
+        for i in range(GameData.fourMast):
+            shipsList.append(Ship.Ship(4, (0, 0)))
+        for i in range(GameData.threeMast):
+            shipsList.append(Ship.Ship(3, (0, 0)))
+        for i in range(GameData.twoMast):
+            shipsList.append(Ship.Ship(2, (0, 0)))
+        for i in range(GameData.oneMast):
+            shipsList.append(Ship.Ship(1, (0, 0)))
+
 
     def drawGame(self, window):
         match self.gameState:
@@ -99,7 +105,7 @@ class GameLogic:
         TextDisplayer.text_to_screen(window, name, textRect[0], textRect[1], size=textSize)
 
     def __drawPlaceShips(self, window):
-        self.__drawButton(window, "start", self.startButton, color= Colors.blue if self.__anyShipLeftToPlace() else Colors.red)
+        self.__drawButton(window, "start", self.startButton, color= Colors.red if self.__anyShipLeftToPlace(self.playerShips) else Colors.blue)
         self.__drawButton(window, "reset", self.resetButton)
         count = (self.__countShips(1), self.__countShips(2), self.__countShips(3), self.__countShips(4))
         self.__drawButton(window, f"one mast ({count[0]})", self.oneMastButton, textSize=35,
@@ -128,30 +134,26 @@ class GameLogic:
                 pygame.draw.rect(window, c, self.playerButtonsGrid[row][col])
 
     def __countShips(self, mastCount):
-        return sum(map(lambda x: x.numberOfMasts == mastCount and not x.isPlaced, self.ships))
+        return sum(map(lambda x: x.numberOfMasts == mastCount and not x.isPlaced, self.playerShips))
 
-    def __placeShip(self):
-        if self.__canShipBePlaced(self.currentShip):
-            for field in self.currentShip.gridFields:
-                self.playerShipsGrid[field[0]][field[1]] = BoardMarkers.ship
+    def __placeShip(self, ship, grid):
+        if self.__canShipBePlaced(ship, grid):
+            for field in ship.gridFields:
+                grid[field[0]][field[1]] = BoardMarkers.ship
                 fieldsAround = self.__getFieldAround(field)
 
                 for fa in fieldsAround:
-                    if fa not in self.currentShip.gridFields and self.__isFieldInGrid(fa):
-                        self.playerShipsGrid[fa[0]][fa[1]] = BoardMarkers.shipNeighborhood
-
-            ship = next((x for x in self.ships if x.numberOfMasts == self.currentShip.numberOfMasts and not x.isPlaced),
-                        None)
-            ship.isPlaced = True
-
-            self.currentShip.numberOfMasts = 0
+                    if fa not in ship.gridFields and self.__isFieldInGrid(fa):
+                        grid[fa[0]][fa[1]] = BoardMarkers.shipNeighborhood
+            return True
+        return False
 
     def __getFieldAround(self, field):
         return ((field[0] - 1, field[1] + 1), (field[0], field[1] + 1), (field[0] + 1, field[1] + 1),
                 (field[0] - 1, field[1]), (field[0] + 1, field[1]),
                 (field[0] - 1, field[1] - 1), (field[0], field[1] - 1), (field[0] + 1, field[1] - 1))
 
-    def __canShipBePlaced(self, ship):
+    def __canShipBePlaced(self, ship, grid):
         if ship.numberOfMasts == 0:
             return False
 
@@ -159,18 +161,54 @@ class GameLogic:
             if not self.__isFieldInGrid(field):
                 return False
 
-            if self.playerShipsGrid[field[0]][field[1]] != BoardMarkers.water:
+            if grid[field[0]][field[1]] != BoardMarkers.water:
                 return False
 
         return True
+
+    def __placeEnemyShips(self, fuse=0):
+
+        tempShips = list()
+        for row in range(0, GameData.gridSize):
+            for col in range(0, GameData.gridSize):
+                tempShips.append((row, col))
+
+        for ship in self.enemyShips:
+            while len(tempShips) > 0 and not ship.isPlaced:
+                gridField = random.choice(tempShips)
+                self.shipOrientation = ShipOrientation.vertical if random.getrandbits(1) == 1 else ShipOrientation.horizontal
+                ship.setCoords(gridField, self.shipOrientation)
+
+                if not self.__placeShip(ship, self.enemyShipsGrid):
+                    self.shipOrientation = ShipOrientation.vertical if self.shipOrientation == ShipOrientation.horizontal else ShipOrientation.horizontal
+                    ship.setCoords(gridField, self.shipOrientation)
+                    ship.isPlaced = self.__placeShip(ship, self.enemyShipsGrid)
+                else:
+                    ship.isPlaced = True
+
+                tempShips.remove(gridField)
+
+        if self.__anyShipLeftToPlace(self.enemyShips):
+            if fuse < 5:
+                self.__placeEnemyShips(fuse+1)
+            else:
+                print("Cant place enemy ships")
 
     def __isFieldInGrid(self, field):
         if field[0] < 0 or field[0] > GameData.gridSize - 1 or field[1] < 0 or field[1] > GameData.gridSize - 1:
             return False
         return True
 
-    def __anyShipLeftToPlace(self):
-        return next((x for x in self.ships if not x.isPlaced), None) is None
+    def __anyShipLeftToPlace(self, ships):
+        for ship in ships:
+            if not ship.isPlaced:
+                return True
+        return False
+
+    def __startGame(self):
+        self.__fillListWithShips(self.enemyShips)
+        self.__placeEnemyShips()
+        self.gameState = GameState.game
 
     def prepareToPlaceShip(self, mastCount, orientation):
         self.currentShip.numberOfMasts = mastCount
@@ -197,8 +235,8 @@ class GameLogic:
             if self.quitButton.collidepoint(mouse_pos):
                 Run.quitGame()
         elif self.gameState == GameState.placeShips:
-            if self.startButton.collidepoint(mouse_pos) and self.__anyShipLeftToPlace():
-                self.gameState = GameState.game
+            if self.startButton.collidepoint(mouse_pos) and not self.__anyShipLeftToPlace(self.playerShips):
+                self.__startGame()
             if self.oneMastButton.collidepoint(mouse_pos) and self.__countShips(1) > 0:
                 self.currentShip.numberOfMasts = 1
             if self.twoMastButton.collidepoint(mouse_pos) and self.__countShips(2) > 0:
@@ -213,7 +251,11 @@ class GameLogic:
                     button = self.playerButtonsGrid[row][col]
 
                     if button.collidepoint(mouse_pos):
-                        self.__placeShip()
+                        if self.__placeShip(self.currentShip, self.playerShipsGrid):
+                            ship = next((x for x in self.playerShips if x.numberOfMasts == self.currentShip.numberOfMasts and not x.isPlaced),
+                                        None)
+                            ship.isPlaced = True
+                            self.currentShip.numberOfMasts = 0
 
         elif self.gameState == GameState.game:
             for row in range(0, GameData.gridSize):
