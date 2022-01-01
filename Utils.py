@@ -15,28 +15,6 @@ class Colors:
     gray = (119,136,153)
 
 
-class GeneralData:
-    width = 1280
-    height = 720
-    name = "js-okrety"
-    fps = 60
-
-
-class GameData:
-    gridSize = 10
-    menuButtonSize = (200, 75)
-    shipButtonSize = (300, 50)
-    buttonSize = 40
-    mapMarginX = 30
-    mapMarginY = 30
-    boardTopMargin = 100
-    enemyMapOrigin = GeneralData.width - mapMarginX - gridSize * buttonSize
-    oneMast = 4
-    twoMast = 3
-    threeMast = 2
-    fourMast = 1
-
-
 class ShipOrientation(Enum):
     horizontal = 1
     vertical = 2
@@ -88,18 +66,6 @@ class BoardMarkersUtils:
                 return Colors.lightGreen
             case _:
                 return Colors.black
-
-
-class RectUtils:
-    @staticmethod
-    def getPlayerBoardCoordinate(mousePos):
-        return int((mousePos[0] - GameData.mapMarginX) / GameData.buttonSize), int(
-            (mousePos[1] - GameData.mapMarginY) / GameData.buttonSize)
-
-    @staticmethod
-    def getEnemyBoardCoordinate(mousePos):
-        return int((mousePos[0] - GameData.enemyMapOrigin) / GameData.buttonSize), int(
-            (mousePos[1] - GameData.mapMarginY) / GameData.buttonSize)
 
 
 class TextDisplayer:

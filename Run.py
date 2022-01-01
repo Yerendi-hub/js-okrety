@@ -1,15 +1,13 @@
 import pygame
-import GameLogic
 import pygame_widgets
-from Utils import GeneralData, Colors, TextDisplayer
+import Data
+import Drawing
+import Logic
 
 pygame.init()
-window = pygame.display.set_mode((GeneralData.width, GeneralData.height))
-pygame.display.set_caption(GeneralData.name)
+window = pygame.display.set_mode((Data.width, Data.height))
+pygame.display.set_caption(Data.name)
 
-def draw_window():
-    window.fill(Colors.white)
-    gl.drawGame(window)
 
 def flushDisplay(events):
     pygame.display.flip()
@@ -19,27 +17,27 @@ def flushDisplay(events):
 
 def main():
     clock = pygame.time.Clock()
-    global gl
-    gl = GameLogic.GameLogic()
     run = True
+    drawing = Drawing.Drawing()
+    logic = Logic.Logic()
 
     while run:
-        clock.tick(GeneralData.fps)
+        clock.tick(Data.fps)
         events = pygame.event.get()
         for event in events:
             if event.type == pygame.QUIT:
                 run = False
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
-                    gl.handleLeftMouseDown()
+                    logic.handleLeftMouseDown()
                 elif event.button == 3:
-                    gl.handleRightMouseDown()
+                    logic.handleRightMouseDown()
             if event.type == pygame.KEYDOWN:
-                gl.handleKeyPress(event.key)
+                logic.handleKeyPress(event.key)
 
-        draw_window()
+        drawing.drawGame(window)
         flushDisplay(events)
-        gl.gameLogic()
+        logic.gameLogic()
 
     quitGame()
 
