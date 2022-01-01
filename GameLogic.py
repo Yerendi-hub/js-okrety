@@ -33,11 +33,7 @@ class GameLogic:
                                           GameData.shipButtonSize[0], GameData.shipButtonSize[1])
 
         self.resetButton = self.quitButton
-
-        menuButtonShift += GameData.shipButtonSize[1] + GameData.mapMarginY
-
-        self.winnerText = pygame.Rect(GeneralData.width / 2. - GameData.shipButtonSize[0] / 2., menuButtonShift,
-                                      GameData.shipButtonSize[0], GameData.shipButtonSize[1])
+        self.winnerText = self.startButton
 
         self.playerShipsGrid = [[0 for _ in range(GameData.gridSize)] for _ in range(GameData.gridSize)]
         self.playerButtonsGrid = [[0 for _ in range(GameData.gridSize)] for _ in range(GameData.gridSize)]
@@ -98,7 +94,7 @@ class GameLogic:
             field = self.__getDamagedShip()
 
             if field is not None:
-                ship = self.__getShipWithGivenCoordinates(field)
+                ship = self.__getShipWithGivenCoordinates(field, self.playerShips)
                 if ship.isShipSank(self.playerShipsGrid):
                     for field in ship.gridFields:
                         self.playerShipsGrid[field[0]][field[1]] = BoardMarkers.wreck
@@ -128,8 +124,8 @@ class GameLogic:
                     return True
         return False
 
-    def __getShipWithGivenCoordinates(self, field):
-        for ship in self.playerShips:
+    def __getShipWithGivenCoordinates(self, field, ships):
+        for ship in ships:
             if field in ship.gridFields:
                 return ship
         return None
@@ -143,11 +139,18 @@ class GameLogic:
                 pygame.draw.rect(window, c, self.playerButtonsGrid[row][col])
 
                 c = BoardMarkersUtils.getColorBaseOnBoardMarker(self.enemyShipsGrid[row][col])
+                if self.enemyShipsGrid[row][col] == BoardMarkers.ship:
+                    c = BoardMarkersUtils.getColorBaseOnBoardMarker(BoardMarkers.water)
                 pygame.draw.rect(window, c, self.enemyButtonsGrid[row][col])
 
         if self.tour == Tour.gameEnd:
             winner = "Wygrana!" if self.winner == Tour.player else "Przegrana!"
             TextDisplayer.text_to_screen(window, winner, self.winnerText[0], self.winnerText[1], size=30)
+        else:
+            TextDisplayer.text_to_screen(window, f"1-maszt przeciwnika: {self.__countAliveShips(1, self.enemyShips, self.enemyShipsGrid)}", self.oneMastButton[0], self.oneMastButton[1], size=30)
+            TextDisplayer.text_to_screen(window, f"2-maszt przeciwnika: {self.__countAliveShips(2, self.enemyShips, self.enemyShipsGrid)}", self.twoMastButton[0], self.twoMastButton[1], size=30)
+            TextDisplayer.text_to_screen(window, f"3-maszt przeciwnika: {self.__countAliveShips(3, self.enemyShips, self.enemyShipsGrid)}", self.threeMastButton[0], self.threeMastButton[1], size=30)
+            TextDisplayer.text_to_screen(window, f"4-maszt przeciwnika: {self.__countAliveShips(4, self.enemyShips, self.enemyShipsGrid)}", self.fourMastButton[0], self.fourMastButton[1], size=30)
 
     def __drawMenuButtons(self, window):
         self.__drawButton(window, "start", self.startButton)
@@ -197,8 +200,11 @@ class GameLogic:
     def __countShips(self, mastCount):
         return sum(map(lambda x: x.numberOfMasts == mastCount and not x.isPlaced, self.playerShips))
 
+    def __countAliveShips(self, mastCount, ships, grid):
+        return sum(map(lambda x: x.numberOfMasts == mastCount and not x.isShipSank(grid), ships))
+
     def __guessNextField(self, field):
-        ship = self.__getShipWithGivenCoordinates(field)
+        ship = self.__getShipWithGivenCoordinates(field, self.playerShips)
         fields = list()
 
         for f in ship.gridFields:
@@ -223,8 +229,7 @@ class GameLogic:
             newField = random.choice(fields)
             fields.remove(newField)
 
-        if ship.enemyOrientation == ShipOrientation.notKnown and self.playerShipsGrid[newField[0]][
-            newField[1]] == BoardMarkers.ship:
+        if ship.enemyOrientation == ShipOrientation.notKnown and self.playerShipsGrid[newField[0]][newField[1]] == BoardMarkers.ship:
             ship.enemyOrientation = ShipOrientation.vertical if newField[1] != field[1] else ShipOrientation.horizontal
 
         self.__shotGivenField(newField)
@@ -390,12 +395,20 @@ class GameLogic:
 
                         if button.collidepoint(mouse_pos):
                             coord = RectUtils.getEnemyBoardCoordinate(mouse_pos)
-                            marker = BoardMarkers.waterHit if self.enemyShipsGrid[coord[0]][coord[
-                                1]] != BoardMarkers.ship else BoardMarkers.shipDamaged
-                            self.enemyShipsGrid[coord[0]][coord[1]] = marker
+                            cm = self.enemyShipsGrid[coord[0]][coord[1]]
+                            if cm != BoardMarkers.waterHit and cm != BoardMarkers.shipDamaged and cm != BoardMarkers.wreck:
+                                marker = BoardMarkers.waterHit if self.enemyShipsGrid[coord[0]][coord[
+                                    1]] != BoardMarkers.ship else BoardMarkers.shipDamaged
+                                self.enemyShipsGrid[coord[0]][coord[1]] = marker
 
-                            if not self.__andShipsLeft(self.enemyShipsGrid):
-                                self.tour = Tour.gameEnd
-                                self.winner = Tour.player
-                            else:
-                                self.tour = Tour.enemy
+                                if marker == BoardMarkers.shipDamaged:
+                                    ship = self.__getShipWithGivenCoordinates(coord, self.enemyShips)
+                                    if ship.isShipSank(self.enemyShipsGrid):
+                                        for field in ship.gridFields:
+                                            self.enemyShipsGrid[field[0]][field[1]] = BoardMarkers.wreck
+
+                                if not self.__andShipsLeft(self.enemyShipsGrid):
+                                    self.tour = Tour.gameEnd
+                                    self.winner = Tour.player
+                                else:
+                                    self.tour = Tour.enemy
