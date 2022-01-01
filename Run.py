@@ -39,6 +39,7 @@ def main():
 
         draw_window()
         flushDisplay(events)
+        gl.gameLogic()
 
     quitGame()
 

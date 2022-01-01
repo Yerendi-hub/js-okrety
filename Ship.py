@@ -3,19 +3,20 @@ from Utils import BoardMarkers, ShipOrientation
 
 class Ship:
 
-    def __init__(self, numberOfMasts, gridFields):
+    def __init__(self, numberOfMasts):
         self.numberOfMasts = numberOfMasts
-        self.gridFields = gridFields
+        self.gridFields = list()
         self.isPlaced = False
+        self.enemyOrientation = ShipOrientation.notKnown
 
     def isFieldPartOfTheShip(self, filed):
         return filed in self.gridFields
 
     def isShipSank(self, grid):
         for field in self.gridFields:
-            if grid[field] == BoardMarkers.wreck:
+            if grid[field[0]][field[1]] == BoardMarkers.wreck:
                 return True
-            if grid[field] != BoardMarkers.shipDamaged:
+            if grid[field[0]][field[1]] != BoardMarkers.shipDamaged:
                 return False
         return True
 

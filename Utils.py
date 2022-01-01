@@ -40,6 +40,13 @@ class GameData:
 class ShipOrientation(Enum):
     horizontal = 1
     vertical = 2
+    notKnown = 3
+
+
+class Tour(Enum):
+    player = 1
+    enemy = 2
+    gameEnd = 3
 
 
 class BoardMarkers(Enum):
