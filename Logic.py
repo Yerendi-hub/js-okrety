@@ -1,7 +1,5 @@
 import random
-
 import pygame
-
 import RectUtils
 import Run
 import Data
@@ -13,6 +11,15 @@ class Logic:
     def __init__(self):
         self.__fillGrid()
         self.__enemyShootsLeft = list()
+
+    def handleEvent(self, event):
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:
+                self.__handleLeftMouseDown()
+            elif event.button == 3:
+                self.__handleRightMouseDown()
+        if event.type == pygame.KEYDOWN:
+            self.__handleKeyPress(event.key)
 
     def __startGame(self):
         self.__fillListWithShips(Data.enemyShips)
@@ -218,14 +225,14 @@ class Logic:
         Data.currentShip.numberOfMasts = mastCount
         Data.shipOrientation = orientation
 
-    def handleKeyPress(self, key):
+    def __handleKeyPress(self, key):
         if key == pygame.K_r:
             Data.shipOrientation = ShipOrientation.vertical if Data.shipOrientation == ShipOrientation.horizontal else ShipOrientation.horizontal
 
-    def handleRightMouseDown(self):
+    def __handleRightMouseDown(self):
         Data.currentShip.numberOfMasts = 0
 
-    def handleLeftMouseDown(self):
+    def __handleLeftMouseDown(self):
         mouse_pos = pygame.mouse.get_pos()
 
         if Data.gameState != GameState.menu:

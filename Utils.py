@@ -12,7 +12,7 @@ class Colors:
     orange = (255, 165, 0)
     darkOrange = (255, 99, 71)
     lightGreen = (0, 255, 127)
-    gray = (119,136,153)
+    gray = (119, 136, 153)
 
 
 class ShipOrientation(Enum):
@@ -68,16 +68,32 @@ class BoardMarkersUtils:
                 return Colors.black
 
 
-class TextDisplayer:
+class TextUtility:
+
     @staticmethod
-    def text_to_screen(window, text, x, y, size=50, color=Colors.black):
+    def getTextSize(text, size=50):
+        font = pygame.font.Font(pygame.font.get_default_font(), size)
+        text = font.render(text, False, Colors.red)
+        return text.get_width(), text.get_height()
+
+    @staticmethod
+    def getTextPosition(originRect, text, size=50):
+        textSize = TextUtility.getTextSize(text, size=size)
+        textRect = originRect[0] + originRect[2] / 2. - textSize[0] / 2., originRect[1] + originRect[3] / 2. - textSize[
+            1] / 2.
+        return textRect
+
+
+class Drawer:
+
+    @staticmethod
+    def textToScreen(window, text, x, y, size=50, color=Colors.black):
         font = pygame.font.Font(pygame.font.get_default_font(), size)
         text = font.render(text, False, color)
         window.blit(text, (x, y))
 
     @staticmethod
-    def get_text_size(text, size=50):
-        font = pygame.font.Font(pygame.font.get_default_font(), size)
-        text = font.render(text, False, Colors.red)
-        return text.get_width(), text.get_height()
-
+    def drawButton(window, name, rect, textSize=50, color=Colors.blue):
+        pygame.draw.rect(window, color, rect)
+        textRect = TextUtility.getTextPosition(rect, name, size=textSize)
+        Drawer.textToScreen(window, name, textRect[0], textRect[1], size=textSize)
