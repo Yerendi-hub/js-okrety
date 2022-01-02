@@ -104,6 +104,6 @@ class Drawing:
                                                                f"{masts}-mast enemy: {Data.countAliveShips(masts, Data.enemyShips, Data.enemyShipsGrid)}",
                                                                rect[0], rect[1], size=30)
             drawText(1, Data.oneMastButton)
-            drawText(2, Data.oneMastButton)
-            drawText(3, Data.oneMastButton)
-            drawText(4, Data.oneMastButton)
+            drawText(2, Data.twoMastButton)
+            drawText(3, Data.threeMastButton)
+            drawText(4, Data.fourMastButton)

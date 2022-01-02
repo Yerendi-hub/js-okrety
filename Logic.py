@@ -36,15 +36,16 @@ class Logic:
 
     def __fillGrid(self):
         self.__fillListWithShips(Data.playerShips)
+        margin = Data.buttonWithMargin
 
         for row in range(0, Data.gridSize):
             for col in range(0, Data.gridSize):
                 Data.playerShipsGrid[row][col] = BoardMarkers.water
-                Data.playerButtonsGrid[row][col] = pygame.Rect(Data.mapMarginX + row * 40,
-                                                               Data.spaceY + col * 40, 36, 36)
+                Data.playerButtonsGrid[row][col] = pygame.Rect(Data.mapMarginX + row * Data.buttonSize,
+                                                               Data.mapMarginY + col * Data.buttonSize, margin, margin)
                 Data.enemyShipsGrid[row][col] = BoardMarkers.water
-                Data.enemyButtonsGrid[row][col] = pygame.Rect(Data.enemyMapOrigin + row * 40,
-                                                              Data.spaceY + col * 40, 36, 36)
+                Data.enemyButtonsGrid[row][col] = pygame.Rect(Data.enemyMapOrigin + row * Data.buttonSize,
+                                                              Data.mapMarginY + col * Data.buttonSize, margin, margin)
 
     def gameLogic(self):
         if Data.tour == Tour.enemy:
