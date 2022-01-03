@@ -6,6 +6,7 @@ from Utils import GameState, Colors, BoardMarkersUtils, BoardMarkers, Tour, Draw
 
 
 class Drawing:
+    """Class responsible for visual part of the game"""
 
     def __init__(self, window):
         self.__window = window

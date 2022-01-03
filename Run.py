@@ -41,7 +41,7 @@ def main():
                 logic.handleEvent(event)
 
         drawing.drawGame()
-        logic.gameLogic()
+        logic.AI()
 
     quitGame()
 
