@@ -2,6 +2,12 @@ from Utils import BoardMarkers, ShipOrientation
 
 
 class Ship:
+    """ represents ship object with its:
+        position,
+        number of masts
+        information about being placed
+        orientation for enemy ship
+     """
 
     def __init__(self, numberOfMasts):
         self.numberOfMasts = numberOfMasts

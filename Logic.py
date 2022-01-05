@@ -265,11 +265,13 @@ class Logic:
 
         for ship in Data.enemyShips:
             while len(tempShips) > 0 and not ship.isPlaced:
+                # select random fields and orientation and set it to ship
                 gridField = random.choice(tempShips)
                 Data.shipOrientation = ShipOrientation.vertical if random.getrandbits(
                     1) == 1 else ShipOrientation.horizontal
                 ship.setCoords(gridField, Data.shipOrientation)
 
+                # try to place ship at given field, if failed change orientation
                 if not self.__placeShip(ship, Data.enemyShipsGrid):
                     Data.shipOrientation = ShipOrientation.vertical if Data.shipOrientation == ShipOrientation.horizontal else ShipOrientation.horizontal
                     ship.setCoords(gridField, Data.shipOrientation)
@@ -277,40 +279,53 @@ class Logic:
                 else:
                     ship.isPlaced = True
 
+                # remove used gridField
                 tempShips.remove(gridField)
 
     def __isFieldInGrid(self, field):
+        """checks if field is in grid"""
         if field[0] < 0 or field[0] > Data.gridSize - 1 or field[1] < 0 or field[1] > Data.gridSize - 1:
             return False
         return True
 
-    def prepareToPlaceShip(self, mastCount, orientation):
-        Data.currentShip.numberOfMasts = mastCount
-        Data.shipOrientation = orientation
-
     def __handleKeyPress(self, key):
+        """handle keyboard key press"""
         if key == pygame.K_r:
+            # ship rotation
             Data.shipOrientation = ShipOrientation.vertical if Data.shipOrientation == ShipOrientation.horizontal else ShipOrientation.horizontal
 
     def __handleRightMouseDown(self):
+        """handle right mouse button down"""
+        # removes ship ghost while placing ships
         Data.currentShip.numberOfMasts = 0
 
     def __handleLeftMouseDown(self):
+        """handle left mouse button down"""
+
+        # cache mouse position for shorter use
         mouse_pos = pygame.mouse.get_pos()
 
         if Data.gameState != GameState.menu:
+            # reset button logic - it sets game on the beginning of ships placing
             if Data.resetButton.collidepoint(mouse_pos):
                 Data.gameState = GameState.placeShips
                 self.__fillGrid()
 
+        # menu logic
         if Data.gameState == GameState.menu:
             if Data.startButton.collidepoint(mouse_pos):
+                # if start game then go to ship placing
                 Data.gameState = GameState.placeShips
             if Data.quitButton.collidepoint(mouse_pos):
+                # if quit then quit application
                 Run.quitGame()
+        # placing ships logic
         elif Data.gameState == GameState.placeShips:
+            # if all ships are placed, and we press start then game begins
             if Data.startButton.collidepoint(mouse_pos) and not Data.anyShipLeftToPlace(Data.playerShips):
                 self.__startGame()
+
+            # selecting given ship type logic
             if Data.oneMastButton.collidepoint(mouse_pos) and Data.countUnplacedShips(1) > 0:
                 Data.currentShip.numberOfMasts = 1
             if Data.twoMastButton.collidepoint(mouse_pos) and Data.countUnplacedShips(2) > 0:
@@ -320,43 +335,56 @@ class Logic:
             if Data.fourMastButton.collidepoint(mouse_pos) and Data.countUnplacedShips(4) > 0:
                 Data.currentShip.numberOfMasts = 4
 
+            # checking if we press any button on grid
             for row in range(0, Data.gridSize):
                 for col in range(0, Data.gridSize):
                     button = Data.playerButtonsGrid[row][col]
 
                     if button.collidepoint(mouse_pos):
+                        # if we press grid field, and we can place ship there then place ship
                         if self.__placeShip(Data.currentShip, Data.playerShipsGrid):
+                            # select ship with given masts count that is not already placed
                             ship = next((x for x in Data.playerShips if
                                          x.numberOfMasts == Data.currentShip.numberOfMasts and not x.isPlaced),
                                         None)
+
+                            # make ship placed and fill its data
                             ship.isPlaced = True
                             ship.gridFields.clear()
                             for field in Data.currentShip.gridFields:
                                 ship.gridFields.append((field[0], field[1]))
-                            Data.currentShip.numberOfMasts = 0
 
+                            # reset ghost
+                            Data.currentShip.numberOfMasts = 0
+        # main game logic
         elif Data.gameState == GameState.game:
+            # if its players turn then we check if he pressed enemy grid
             if Data.tour == Tour.player:
                 for row in range(0, Data.gridSize):
                     for col in range(0, Data.gridSize):
                         button = Data.enemyButtonsGrid[row][col]
-                        mouse_pos = pygame.mouse.get_pos()
 
                         if button.collidepoint(mouse_pos):
+                            # if player pressed grid button we get coordinates and current marker
                             coord = RectUtils.getEnemyBoardCoordinate(mouse_pos)
                             cm = Data.enemyShipsGrid[coord[0]][coord[1]]
+
+                            # if player shoot intact field and hit water/ship we set according marker
                             if cm != BoardMarkers.waterHit and cm != BoardMarkers.shipDamaged and cm != BoardMarkers.wreck:
                                 marker = BoardMarkers.waterHit if Data.enemyShipsGrid[coord[0]][coord[
                                     1]] != BoardMarkers.ship else BoardMarkers.shipDamaged
                                 Data.enemyShipsGrid[coord[0]][coord[1]] = marker
 
+                                # if player damage ship we check if he did not destroy it, if so we set it to wreck
                                 if marker == BoardMarkers.shipDamaged:
                                     ship = self.__getShipWithGivenCoordinates(coord, Data.enemyShips)
                                     if ship.isShipSank(Data.enemyShipsGrid):
                                         for field in ship.gridFields:
                                             Data.enemyShipsGrid[field[0]][field[1]] = BoardMarkers.wreck
 
+                                # if there is no enemies ships left we endGame with player as winner
                                 if not self.__anyShipsLeft(Data.enemyShipsGrid):
                                     self.__endGame(Tour.player)
+                                # otherwise, its AI turn
                                 else:
                                     Data.tour = Tour.enemy

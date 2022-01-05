@@ -66,14 +66,17 @@ winner = Tour.player  # when tour is set to gameEnd it shows who won game. Reuse
 
 
 def countUnplacedShips(mastCount):
+    """returns number of ships with given masts count that can be placed by player"""
     return sum(map(lambda x: x.numberOfMasts == mastCount and not x.isPlaced, playerShips))
 
 
 def countAliveShips(mastCount, ships, grid):
+    """returns number of alive ships of a given type on a given grid"""
     return sum(map(lambda x: x.numberOfMasts == mastCount and not x.isShipSank(grid), ships))
 
 
 def anyShipLeftToPlace(ships):
+    """returns if in given ships list there is any ship to place"""
     for ship in ships:
         if not ship.isPlaced:
             return True
