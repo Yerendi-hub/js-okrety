@@ -5,14 +5,14 @@ import pygame
 class Colors:
     white = (255, 255, 255)
     red = (255, 0, 0)
-    green = (0, 255, 0)
+    green = (50, 205, 50)
     lightBlue = (0, 191, 255)
     blue = (0, 0, 255)
     black = (0, 0, 0)
     orange = (255, 165, 0)
     darkOrange = (255, 99, 71)
-    lightGreen = (0, 255, 127)
-    gray = (119, 136, 153)
+    lightGreen = (107, 142, 35)
+    gray = (192, 192, 192)
 
 
 class ShipOrientation(Enum):

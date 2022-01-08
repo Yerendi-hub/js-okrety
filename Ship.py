@@ -16,9 +16,11 @@ class Ship:
         self.enemyOrientation = ShipOrientation.notKnown
 
     def isFieldPartOfTheShip(self, filed):
+        """check if given field is part of ship"""
         return filed in self.gridFields
 
     def isShipSank(self, grid):
+        """check if ship is sank by checking all of its fields"""
         for field in self.gridFields:
             if grid[field[0]][field[1]] == BoardMarkers.wreck:
                 return True
@@ -27,6 +29,7 @@ class Ship:
         return True
 
     def setCoords(self, coords, orientation):
+        """set ships coords by giving filed and orientation"""
         self.gridFields = list()
 
         if orientation == ShipOrientation.vertical:

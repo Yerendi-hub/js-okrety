@@ -70,7 +70,10 @@ class Drawing:
 
                 # if we have field that is part of the ship then set ship color
                 if Data.currentShip.numberOfMasts > 0 and (row, col) in Data.currentShip.gridFields:
-                    c = BoardMarkersUtils.getColorBaseOnBoardMarker(BoardMarkers.placeShip)
+                    if Data.playerShipsGrid[row][col] != BoardMarkers.water:
+                        c = BoardMarkersUtils.getColorBaseOnBoardMarker(BoardMarkers.error)
+                    else:
+                        c = BoardMarkersUtils.getColorBaseOnBoardMarker(BoardMarkers.placeShip)
 
                 # finally, we draw grid field with given color at given coordinates
                 pygame.draw.rect(self.__window, c, Data.playerButtonsGrid[row][col])

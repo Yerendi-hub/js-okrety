@@ -21,8 +21,6 @@ class Logic:
                 self.__handleLeftMouseDown()
             elif event.button == 3:  # right mouse button
                 self.__handleRightMouseDown()
-        if event.type == pygame.KEYDOWN:
-            self.__handleKeyPress(event.key)  # event.key represents keyboard keycode
 
     def __startGame(self):
         """start game logic, reinitialize enemy ships and randomly select starting player"""
@@ -62,10 +60,10 @@ class Logic:
 
             if field is not None:
                 # if there are damaged ships we try to find next ship fields
-                self.__guessNextField(field)
+                self.__enemyGuessNextField(field)
             else:
                 # else we fire random
-                self.__shootRandomField()
+                self.__enemyShootRandomField()
 
             # we check if ship there are damaged ships after shoot, so we can set wreck coordinates
             field = self.__getDamagedShip()
@@ -133,7 +131,7 @@ class Logic:
                 return ship
         return None
 
-    def __guessNextField(self, field):
+    def __enemyGuessNextField(self, field):
         """finding rest of the ship algorithm"""
         ship = self.__getShipWithGivenCoordinates(field, Data.playerShips)
         fields = list()
@@ -171,13 +169,12 @@ class Logic:
         # if we don't know orientation then we can decide if ship is vertical or horizontal when we hit ship
         # (there is part that can look like AI is using player hidden information, but we already decided that we are shooing
         # this field, so we can check if there is a ship)
-        if ship.enemyOrientation == ShipOrientation.notKnown and Data.playerShipsGrid[newField[0]][
-            newField[1]] == BoardMarkers.ship:
+        if ship.enemyOrientation == ShipOrientation.notKnown and Data.playerShipsGrid[newField[0]][newField[1]] == BoardMarkers.ship:
             ship.enemyOrientation = ShipOrientation.vertical if newField[1] != field[1] else ShipOrientation.horizontal
 
         self.__shotGivenField(newField)
 
-    def __shootRandomField(self):
+    def __enemyShootRandomField(self):
         """shoot random water field from remaining player fields"""
 
         # randomly choose field from remaining
@@ -211,7 +208,6 @@ class Logic:
 
     def __placeShip(self, ship, grid):
         """place Ship object in the given grid. Returns true if ship is successfully placed"""
-
         if self.__canShipBePlaced(ship, grid):
             for field in ship.gridFields:
                 # mark ships coordinates in grid as BoardMarker.ship
@@ -288,16 +284,10 @@ class Logic:
             return False
         return True
 
-    def __handleKeyPress(self, key):
-        """handle keyboard key press"""
-        if key == pygame.K_r:
-            # ship rotation
-            Data.shipOrientation = ShipOrientation.vertical if Data.shipOrientation == ShipOrientation.horizontal else ShipOrientation.horizontal
-
     def __handleRightMouseDown(self):
         """handle right mouse button down"""
-        # removes ship ghost while placing ships
-        Data.currentShip.numberOfMasts = 0
+        # ship rotation
+        Data.shipOrientation = ShipOrientation.vertical if Data.shipOrientation == ShipOrientation.horizontal else ShipOrientation.horizontal
 
     def __handleLeftMouseDown(self):
         """handle left mouse button down"""
@@ -365,26 +355,39 @@ class Logic:
                         button = Data.enemyButtonsGrid[row][col]
 
                         if button.collidepoint(mouse_pos):
-                            # if player pressed grid button we get coordinates and current marker
+                            # if player pressed grid button we get coordinates
                             coord = RectUtils.getEnemyBoardCoordinate(mouse_pos)
-                            cm = Data.enemyShipsGrid[coord[0]][coord[1]]
 
-                            # if player shoot intact field and hit water/ship we set according marker
-                            if cm != BoardMarkers.waterHit and cm != BoardMarkers.shipDamaged and cm != BoardMarkers.wreck:
-                                marker = BoardMarkers.waterHit if Data.enemyShipsGrid[coord[0]][coord[
-                                    1]] != BoardMarkers.ship else BoardMarkers.shipDamaged
-                                Data.enemyShipsGrid[coord[0]][coord[1]] = marker
-
-                                # if player damage ship we check if he did not destroy it, if so we set it to wreck
-                                if marker == BoardMarkers.shipDamaged:
-                                    ship = self.__getShipWithGivenCoordinates(coord, Data.enemyShips)
-                                    if ship.isShipSank(Data.enemyShipsGrid):
-                                        for field in ship.gridFields:
-                                            Data.enemyShipsGrid[field[0]][field[1]] = BoardMarkers.wreck
-
+                            # if we did a valid shoot
+                            if self.__makeAPlayerShoot(coord):
                                 # if there is no enemies ships left we endGame with player as winner
                                 if not self.__anyShipsLeft(Data.enemyShipsGrid):
                                     self.__endGame(Tour.player)
                                 # otherwise, its AI turn
                                 else:
                                     Data.tour = Tour.enemy
+
+    def __makeAPlayerShoot(self, coord):
+        """handle player shoot at given coord"""
+
+        if not self.__isFieldInGrid(coord):
+            return False
+
+        # we get current marker
+        marker = Data.enemyShipsGrid[coord[0]][coord[1]]
+
+        # if player shoot intact field and hit water/ship we set according marker
+        if marker != BoardMarkers.waterHit and marker != BoardMarkers.shipDamaged and marker != BoardMarkers.wreck:
+            marker = BoardMarkers.waterHit if Data.enemyShipsGrid[coord[0]][coord[
+                1]] != BoardMarkers.ship else BoardMarkers.shipDamaged
+            Data.enemyShipsGrid[coord[0]][coord[1]] = marker
+
+            # if player damage ship we check if he did not destroy it, if so we set it to wreck
+            if marker == BoardMarkers.shipDamaged:
+                ship = self.__getShipWithGivenCoordinates(coord, Data.enemyShips)
+                if ship.isShipSank(Data.enemyShipsGrid):
+                    for field in ship.gridFields:
+                        Data.enemyShipsGrid[field[0]][field[1]] = BoardMarkers.wreck
+            return True
+        else:
+            return False
