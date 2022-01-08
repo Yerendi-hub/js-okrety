@@ -33,9 +33,7 @@ class Ship:
         self.gridFields = list()
 
         if orientation == ShipOrientation.vertical:
-            for i in range(self.numberOfMasts):
-                self.gridFields.append((coords[0] - i, coords[1]))
+            self.gridFields = [(coords[0] - i, coords[1]) for i in range(self.numberOfMasts)]
 
         if orientation == ShipOrientation.horizontal:
-            for i in range(self.numberOfMasts):
-                self.gridFields.append((coords[0], coords[1]+i))
+            self.gridFields = [(coords[0], coords[1]+i) for i in range(self.numberOfMasts)]
